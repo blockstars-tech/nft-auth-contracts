@@ -8,9 +8,10 @@ import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC
 contract StakingToken is ERC1155Receiver, Ownable {
   event Staking(
     address indexed stakeholder,
-    uint256 indexed tokenId,
+    address indexed tokenAddress,
+    uint96 timestamp,
+    uint256 tokenId,
     uint256 amount,
-    uint256 timestamp,
     bool indexed stake
   );
 
@@ -20,7 +21,8 @@ contract StakingToken is ERC1155Receiver, Ownable {
   struct Stake {
     uint256 tokenId;
     uint256 amount;
-    uint256 timestamp;
+    address tokenAddress;
+    uint96 timestamp;
   }
 
   /**
@@ -36,42 +38,47 @@ contract StakingToken is ERC1155Receiver, Ownable {
    * @param amount The amount of token.
    */
   function stake(
-    IERC1155 tokenAddress,
+    address tokenAddress,
     uint256 tokenId,
     uint256 amount
   ) public {
     require(stakes[msg.sender].tokenId == 0, "You already have a staked token");
 
-    stakes[msg.sender] = Stake({ tokenId: tokenId, amount: amount, timestamp: block.timestamp });
+    stakes[msg.sender] = Stake({
+      tokenId: tokenId,
+      amount: amount,
+      tokenAddress: tokenAddress,
+      timestamp: uint96(block.timestamp)
+    });
     IERC1155(tokenAddress).safeTransferFrom(msg.sender, address(this), tokenId, amount, "0x00");
 
-    emit Staking(msg.sender, tokenId, amount, block.timestamp, true);
+    emit Staking(msg.sender, tokenAddress, uint96(block.timestamp), tokenId, amount, true);
   }
 
   /**
    * A method for a stakeholder to unstake a token.
-   *
-   * @param tokenAddress The token contract address.
    */
-  function unstake(IERC1155 tokenAddress) public {
+  function unstake() public {
+    Stake memory userStake = stakes[msg.sender];
     require(
-      block.timestamp >= (stakes[msg.sender].timestamp + 1 days),
+      block.timestamp >= (userStake.timestamp + 1 days),
       "You need to wait 24 hours before unstake"
     );
 
-    IERC1155(tokenAddress).safeTransferFrom(
+    IERC1155(userStake.tokenAddress).safeTransferFrom(
       address(this),
       msg.sender,
-      stakes[msg.sender].tokenId,
-      stakes[msg.sender].amount,
+      userStake.tokenId,
+      userStake.amount,
       "0x00"
     );
 
     emit Staking(
       msg.sender,
-      stakes[msg.sender].tokenId,
-      stakes[msg.sender].amount,
-      block.timestamp,
+      userStake.tokenAddress,
+      uint96(block.timestamp),
+      userStake.tokenId,
+      userStake.amount,
       false
     );
     delete stakes[msg.sender];
@@ -94,6 +101,6 @@ contract StakingToken is ERC1155Receiver, Ownable {
     uint256[] calldata,
     bytes calldata
   ) external pure override returns (bytes4) {
-    return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
+    revert("batch transfer does not supported");
   }
 }
