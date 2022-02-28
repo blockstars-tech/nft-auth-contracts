@@ -48,6 +48,11 @@ contract StakingToken is Ownable {
    */
   function unstake(IERC1155 tokenAddress) public
   {
+    require(
+      block.timestamp >= (stakes[msg.sender].timestamp + 1 days),
+      "You need to wait 24 hours before unstake"
+    );
+
     IERC1155(tokenAddress).safeTransferFrom(
       address(this),
       msg.sender,
