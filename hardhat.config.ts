@@ -20,8 +20,7 @@ const config: HardhatUserConfig = {
   networks: {
     ropsten: {
       url: `https://eth-ropsten.alchemyapi.io/v2/${process.env.NODE_KEY}`,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
   },
   gasReporter: {
