@@ -13,8 +13,7 @@ contract StakingPairToken is ERC1155Receiver, Ownable {
     uint96 timestamp,
     uint256 tokenId0,
     uint256 tokenId1,
-    uint256 amount0,
-    uint256 amount1,
+    uint256 amount,
     bool stake
   );
 
@@ -24,8 +23,7 @@ contract StakingPairToken is ERC1155Receiver, Ownable {
   struct Stake {
     uint256 tokenId0;
     uint256 tokenId1;
-    uint256 amount0;
-    uint256 amount1;
+    uint256 amount;
     address tokenAddress0;
     address tokenAddress1;
     uint96 timestamp;
@@ -42,22 +40,20 @@ contract StakingPairToken is ERC1155Receiver, Ownable {
     address tokenAddress1,
     uint256 tokenId0,
     uint256 tokenId1,
-    uint256 amount0,
-    uint256 amount1
+    uint256 amount
   ) public {
     require(stakes[stackholder].tokenId0 == 0, "You already have a staked token");
 
     stakes[stackholder] = Stake({
       tokenId0: tokenId0,
       tokenId1: tokenId1,
-      amount0: amount0,
-      amount1: amount1,
+      amount: amount,
       tokenAddress0: tokenAddress0,
       tokenAddress1: tokenAddress1,
       timestamp: uint96(block.timestamp)
     });
-    IERC1155(tokenAddress0).safeTransferFrom(stackholder, address(this), tokenId0, amount0, "0x00");
-    IERC1155(tokenAddress1).safeTransferFrom(stackholder, address(this), tokenId1, amount1, "0x00");
+    IERC1155(tokenAddress0).safeTransferFrom(stackholder, address(this), tokenId0, amount, "0x00");
+    IERC1155(tokenAddress1).safeTransferFrom(stackholder, address(this), tokenId1, amount, "0x00");
 
     emit Staking(
       stackholder,
@@ -66,8 +62,7 @@ contract StakingPairToken is ERC1155Receiver, Ownable {
       uint96(block.timestamp),
       tokenId0,
       tokenId1,
-      amount0,
-      amount1,
+      amount,
       true
     );
   }
@@ -79,7 +74,7 @@ contract StakingPairToken is ERC1155Receiver, Ownable {
     Stake memory userStake = stakes[msg.sender];
 
     require(
-      block.timestamp >= (userStake.timestamp + 1 days),
+      block.timestamp >= (userStake.timestamp + 1 minutes),
       "You need to wait 24 hours before unstake"
     );
 
@@ -87,14 +82,14 @@ contract StakingPairToken is ERC1155Receiver, Ownable {
       address(this),
       msg.sender,
       userStake.tokenId0,
-      userStake.amount0,
+      userStake.amount,
       "0x00"
     );
     IERC1155(userStake.tokenAddress1).safeTransferFrom(
       address(this),
       msg.sender,
       userStake.tokenId1,
-      userStake.amount1,
+      userStake.amount,
       "0x00"
     );
 
@@ -105,8 +100,7 @@ contract StakingPairToken is ERC1155Receiver, Ownable {
       uint96(block.timestamp),
       userStake.tokenId0,
       userStake.tokenId1,
-      userStake.amount0,
-      userStake.amount1,
+      userStake.amount,
       false
     );
     delete stakes[msg.sender];

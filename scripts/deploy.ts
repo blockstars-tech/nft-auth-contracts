@@ -1,7 +1,7 @@
 import { artifacts } from "hardhat";
 
 async function main() {
-  const StakingToken = artifacts.require("StakingToken");
+  const StakingToken = artifacts.require("StakingPairToken");
   const contract = await StakingToken.new();
 
   console.log("StakingToken deployed to:", contract.address);
