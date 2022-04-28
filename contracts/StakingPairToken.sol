@@ -75,8 +75,8 @@ contract StakingPairToken is ERC1155Receiver, Ownable {
     Stake memory userStake = stakes[msg.sender];
 
     require(
-      block.timestamp >= (userStake.timestamp + 3 days),
-      "You need to wait 24 hours before unstake"
+      block.timestamp >= (userStake.timestamp + 4 days),
+      "You need to wait 96 hours before unstake"
     );
 
     IERC1155(userStake.tokenAddress0).safeTransferFrom(
