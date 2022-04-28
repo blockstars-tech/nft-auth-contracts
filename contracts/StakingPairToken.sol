@@ -42,6 +42,7 @@ contract StakingPairToken is ERC1155Receiver, Ownable {
     uint256 tokenId1,
     uint256 amount
   ) public {
+    require(amount != 0, "The amount must be greater than 0");
     require(stakes[stackholder].tokenId0 == 0, "You already have a staked token");
 
     stakes[stackholder] = Stake({
@@ -74,7 +75,7 @@ contract StakingPairToken is ERC1155Receiver, Ownable {
     Stake memory userStake = stakes[msg.sender];
 
     require(
-      block.timestamp >= (userStake.timestamp + 1 minutes),
+      block.timestamp >= (userStake.timestamp + 3 days),
       "You need to wait 24 hours before unstake"
     );
 
